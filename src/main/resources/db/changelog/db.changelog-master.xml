@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.10.xsd">
+
+    <changeSet id="1" author="palficsabapeter">
+        <createTable tableName="student">
+            <column name="id" type="UUID">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(255)"/>
+            <column name="email" type="VARCHAR(255)"/>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="2" author="palficsabapeter">
+        <insert tableName="student">
+            <column name="id" value="92d92989-85fc-4004-86ec-30cc8074f469"/>
+            <column name="name" value="Varjú Béla"/>
+            <column name="email" value="vb84@amail.ru"/>
+        </insert>
+        <insert tableName="student">
+            <column name="id" value="81fa1436-785a-4046-a7b2-c0b19cd1e8e1"/>
+            <column name="name" value="Nagy Kata"/>
+            <column name="email" value="nagy.kata@umail.de"/>
+        </insert>
+        <insert tableName="student">
+            <column name="id" value="0229ae74-a0e0-44a0-9038-329f7e5aec2f"/>
+            <column name="name" value="Kis Laci"/>
+            <column name="email" value="kicsilaszlo@freemail.com"/>
+        </insert>
+        <insert tableName="student">
+            <column name="id" value="62a1e888-f386-460b-bc9e-c54e2d9ce43b"/>
+            <column name="name" value="Tompa Pál"/>
+            <column name="email" value="palitompa5555@mail.gov.uk"/>
+        </insert>
+    </changeSet>
+
+</databaseChangeLog>
