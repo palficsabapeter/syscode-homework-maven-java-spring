@@ -13,5 +13,7 @@ public class Main {
     	logger.info("Starting application");
 
         SpringApplication.run(Main.class, args);
+        
+        logger.info("Terminating application");
     }
 }
