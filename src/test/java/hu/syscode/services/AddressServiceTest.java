@@ -7,6 +7,7 @@ import org.mockito.InjectMocks;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import hu.syscode.entities.Address;
+import hu.syscode.services.AddressService;
 
 @SpringBootTest
 public class AddressServiceTest {
