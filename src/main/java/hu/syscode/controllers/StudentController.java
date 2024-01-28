@@ -6,9 +6,15 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import hu.syscode.entities.Address;
 import hu.syscode.entities.Student;
 import hu.syscode.services.StudentService;
+import hu.syscode.dtos.StudentDto;
+import hu.syscode.dtos.StudentDtoMapper;
 
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
@@ -30,27 +36,67 @@ public class StudentController {
 
     @Autowired
     private StudentService studentService;
-	
+    
+    
 	public StudentController(WebClient.Builder webClientBuilder) {
 		webClient = webClientBuilder.baseUrl("http://localhost:8080").build();
 	}
 
     @GetMapping
-    public List<Student> getAllStudents() {
+    public ResponseEntity<List<StudentDto>> getAllStudents() {
     	String jsonAddrRes = webClient.get()
                 .uri("/address")
-                .header("Authorization", this.getBasicAuthenticationHeader(addressAuthUser, addressAuthPw))
+                .header("Authorization", StudentController.getBasicAuthenticationHeader(addressAuthUser, addressAuthPw))
                 .retrieve()
                 .bodyToMono(String.class)
                 .block();
+    	
+    	List<Student> students = studentService.getAllStudents();
+    	List<StudentDto> studentDtos = new ArrayList<StudentDto>();
+    	
+    	ObjectMapper om = new ObjectMapper();
+    	Optional<Address> address = Optional.empty();
+    	try {
+    		address = Optional.of(om.readValue(jsonAddrRes, Address.class));
+    		if (address.isEmpty()) return ResponseEntity.notFound().build();
+    		for (Student student : students) {
+        		StudentDto studentDto = StudentDtoMapper.INSTANCE.convert(student, address.get());
+        		studentDtos.add(studentDto);
+        	}
+    		
+    		return ResponseEntity.ok(studentDtos);
+    	} catch (Exception e) {
+    		e.printStackTrace();
+    	}
+    	
                 
-        return studentService.getAllStudents();
+        return ResponseEntity.internalServerError().build();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Student> getStudentById(@PathVariable UUID id) {
+    public ResponseEntity<StudentDto> getStudentById(@PathVariable UUID id) {
+    	String jsonAddrRes = webClient.get()
+                .uri("/address")
+                .header("Authorization", StudentController.getBasicAuthenticationHeader(addressAuthUser, addressAuthPw))
+                .retrieve()
+                .bodyToMono(String.class)
+                .block();
+    	
         Optional<Student> student = studentService.getStudentById(id);
-        return student.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+        
+        ObjectMapper om = new ObjectMapper();
+    	Optional<Address> address = Optional.empty();
+    	try {
+    		address = Optional.of(om.readValue(jsonAddrRes, Address.class));
+    		if (student.isEmpty() || address.isEmpty()) return ResponseEntity.notFound().build();
+    		StudentDto studentDto = StudentDtoMapper.INSTANCE.convert(student.get(), address.get());
+    		
+    		return ResponseEntity.ok(studentDto);
+    	} catch (Exception e) {
+    		e.printStackTrace();
+    	}
+        
+        return ResponseEntity.internalServerError().build();
     }
 
     @PostMapping

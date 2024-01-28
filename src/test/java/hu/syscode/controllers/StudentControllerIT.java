@@ -25,7 +25,7 @@ import java.util.UUID;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@SpringBootTest
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @AutoConfigureMockMvc
 public class StudentControllerIT {
 	@Autowired
@@ -86,6 +86,7 @@ public class StudentControllerIT {
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.id").value(studentId.toString()))
                 .andExpect(jsonPath("$.name").value(name))
-                .andExpect(jsonPath("$.email").value(email));
+                .andExpect(jsonPath("$.email").value(email))
+                .andExpect(jsonPath("$.address").value("Budapest, 1014, Fő utca 2"));
     }
 }
