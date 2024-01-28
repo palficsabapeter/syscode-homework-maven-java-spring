@@ -1,12 +1,15 @@
 package hu.syscode.controllers;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import hu.syscode.entities.Student;
 import hu.syscode.services.StudentService;
 
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -17,12 +20,30 @@ import java.util.regex.Pattern;
 @RestController
 @RequestMapping("/students")
 public class StudentController {
+	private final WebClient webClient;
+    
+    @Value("${spring.security.user.name}")
+    private String addressAuthUser;
+
+    @Value("${spring.security.user.password}")
+    private String addressAuthPw;
 
     @Autowired
     private StudentService studentService;
+	
+	public StudentController(WebClient.Builder webClientBuilder) {
+		webClient = webClientBuilder.baseUrl("http://localhost:8080").build();
+	}
 
     @GetMapping
     public List<Student> getAllStudents() {
+    	String jsonAddrRes = webClient.get()
+                .uri("/address")
+                .header("Authorization", this.getBasicAuthenticationHeader(addressAuthUser, addressAuthPw))
+                .retrieve()
+                .bodyToMono(String.class)
+                .block();
+                
         return studentService.getAllStudents();
     }
 
@@ -85,5 +106,10 @@ public class StudentController {
     	return Pattern.compile(emailRegex)
     			.matcher(email)
     			.matches();
+    }
+    
+    private static String getBasicAuthenticationHeader(String username, String password) {
+        String valueToEncode = username + ":" + password;
+        return "Basic " + Base64.getEncoder().encodeToString(valueToEncode.getBytes());
     }
 }
