@@ -79,9 +79,7 @@ public class StudentController {
 		String jsonAddrRes = getJsonAddressResponse();
 
 		Optional<Address> address = getAddressFromJson(jsonAddrRes);
-		if (address.isEmpty()) {
-			return ResponseEntity.notFound().build();
-		}
+		if (address.isEmpty()) return ResponseEntity.notFound().build();
 
 		StudentDto studentDto = StudentDtoMapper.INSTANCE.convert(student, address.get());
 		return ResponseEntity.ok(studentDto);
