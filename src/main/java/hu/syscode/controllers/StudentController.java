@@ -37,15 +37,11 @@ public class StudentController {
     	String name = studentData.get("name");
         String email = studentData.get("email");
         
-        if (name != null && email != null) {
-        	if (this.validateEmail(email)) {
-        		Student createdStudent = studentService.createStudent(name, email);
-                Map<String, UUID> response = new HashMap<String, UUID>();
-                response.put("id", createdStudent.getId());
-                return ResponseEntity.ok(response);
-        	} else {
-        		return ResponseEntity.badRequest().build();
-        	}
+        if (nameAndEmailValid(name, email)) {
+        	Student createdStudent = studentService.createStudent(name, email);
+            Map<String, UUID> response = new HashMap<String, UUID>();
+            response.put("id", createdStudent.getId());
+            return ResponseEntity.ok(response);
         } else {
             return ResponseEntity.badRequest().build();
         }
@@ -57,12 +53,8 @@ public class StudentController {
         String email = studentData.get("email");
         Optional<Student> student = Optional.empty();
         
-        if (name != null && email != null) {
-        	if (this.validateEmail(email)) {
-        		student = studentService.updateStudent(id, name, email);
-        	} else {
-        		return ResponseEntity.badRequest().build();
-        	}
+        if (nameAndEmailValid(name, email)) {
+        	student = studentService.updateStudent(id, name, email);
         } else {
         	return ResponseEntity.badRequest().build();
         }
@@ -83,7 +75,11 @@ public class StudentController {
         return ResponseEntity.noContent().build();
     }
     
-    private static boolean validateEmail(String email) {
+    private static boolean nameAndEmailValid(String name, String email) {
+    	if (name == null || email == null) {
+    		return false;
+    	}
+    	
     	// regex from https://emailregex.com/
     	String emailRegex = new String("(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|\"(?:[\\x01-\\x08\\x0b\\x0c\\x0e-\\x1f\\x21\\x23-\\x5b\\x5d-\\x7f]|\\\\[\\x01-\\x09\\x0b\\x0c\\x0e-\\x7f])*\")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\\x01-\\x08\\x0b\\x0c\\x0e-\\x1f\\x21-\\x5a\\x53-\\x7f]|\\\\[\\x01-\\x09\\x0b\\x0c\\x0e-\\x7f])+)\\])");
     	return Pattern.compile(emailRegex)
