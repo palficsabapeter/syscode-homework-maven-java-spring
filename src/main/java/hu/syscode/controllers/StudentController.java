@@ -48,56 +48,61 @@ public class StudentController {
 	@GetMapping
 	public ResponseEntity<List<StudentDto>> getAllStudents() {
 		logger.debug("Running getAllStudents");
-
-		String jsonAddrRes = webClient.get().uri("/address")
-				.header("Authorization", StudentController.getBasicAuthenticationHeader(addressAuthUser, addressAuthPw))
-				.retrieve().bodyToMono(String.class).block();
-
-		List<Student> students = studentService.getAllStudents();
-		List<StudentDto> studentDtos = new ArrayList<StudentDto>();
-
-		ObjectMapper om = new ObjectMapper();
-		Optional<Address> address = Optional.empty();
-		try {
-			address = Optional.of(om.readValue(jsonAddrRes, Address.class));
-			if (address.isEmpty())
-				return ResponseEntity.notFound().build();
-			for (Student student : students) {
-				StudentDto studentDto = StudentDtoMapper.INSTANCE.convert(student, address.get());
-				studentDtos.add(studentDto);
-			}
-
-			return ResponseEntity.ok(studentDtos);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-
-		return ResponseEntity.internalServerError().build();
+		return processStudents(studentService.getAllStudents());
 	}
 
 	@GetMapping("/{id}")
 	public ResponseEntity<StudentDto> getStudentById(@PathVariable UUID id) {
 		logger.debug("Running getStudentById");
-		String jsonAddrRes = webClient.get().uri("/address")
-				.header("Authorization", StudentController.getBasicAuthenticationHeader(addressAuthUser, addressAuthPw))
-				.retrieve().bodyToMono(String.class).block();
-
 		Optional<Student> student = studentService.getStudentById(id);
+		return student.map(value -> processStudent(value)).orElseGet(() -> ResponseEntity.notFound().build());
+	}
 
-		ObjectMapper om = new ObjectMapper();
-		Optional<Address> address = Optional.empty();
-		try {
-			address = Optional.of(om.readValue(jsonAddrRes, Address.class));
-			if (student.isEmpty() || address.isEmpty())
-				return ResponseEntity.notFound().build();
-			StudentDto studentDto = StudentDtoMapper.INSTANCE.convert(student.get(), address.get());
+	private ResponseEntity<List<StudentDto>> processStudents(List<Student> students) {
+		logger.debug("Running processStudents");
+		String jsonAddrRes = getJsonAddressResponse();
+		List<StudentDto> studentDtos = new ArrayList<>();
 
-			return ResponseEntity.ok(studentDto);
-		} catch (Exception e) {
-			e.printStackTrace();
+		Optional<Address> address = getAddressFromJson(jsonAddrRes);
+		if (address.isEmpty()) return ResponseEntity.notFound().build();
+
+		for (Student student : students) {
+			StudentDto studentDto = StudentDtoMapper.INSTANCE.convert(student, address.get());
+			studentDtos.add(studentDto);
 		}
 
-		return ResponseEntity.internalServerError().build();
+		return ResponseEntity.ok(studentDtos);
+	}
+
+	private ResponseEntity<StudentDto> processStudent(Student student) {
+		logger.debug("Running processStudent");
+		String jsonAddrRes = getJsonAddressResponse();
+
+		Optional<Address> address = getAddressFromJson(jsonAddrRes);
+		if (address.isEmpty()) {
+			return ResponseEntity.notFound().build();
+		}
+
+		StudentDto studentDto = StudentDtoMapper.INSTANCE.convert(student, address.get());
+		return ResponseEntity.ok(studentDto);
+	}
+
+	private String getJsonAddressResponse() {
+		logger.debug("Running getJsonAddressResponse");
+		return webClient.get().uri("/address")
+				.header("Authorization", StudentController.getBasicAuthenticationHeader(addressAuthUser, addressAuthPw))
+				.retrieve().bodyToMono(String.class).block();
+	}
+
+	private Optional<Address> getAddressFromJson(String json) {
+		logger.debug("Running getAddressFromJson");
+		ObjectMapper om = new ObjectMapper();
+		try {
+			return Optional.of(om.readValue(json, Address.class));
+		} catch (Exception e) {
+			e.printStackTrace();
+			return Optional.empty();
+		}
 	}
 
 	@PostMapping
@@ -106,14 +111,12 @@ public class StudentController {
 		String name = studentData.get("name");
 		String email = studentData.get("email");
 
-		if (nameAndEmailValid(name, email)) {
-			Student createdStudent = studentService.createStudent(name, email);
-			Map<String, UUID> response = new HashMap<String, UUID>();
-			response.put("id", createdStudent.getId());
-			return ResponseEntity.ok(response);
-		} else {
-			return ResponseEntity.badRequest().build();
-		}
+		if (!nameAndEmailValid(name, email)) return ResponseEntity.badRequest().build();
+		
+		Student createdStudent = studentService.createStudent(name, email);
+		Map<String, UUID> response = new HashMap<String, UUID>();
+		response.put("id", createdStudent.getId());
+		return ResponseEntity.ok(response);
 	}
 
 	@PutMapping("/{id}")
@@ -124,20 +127,16 @@ public class StudentController {
 		String email = studentData.get("email");
 		Optional<Student> student = Optional.empty();
 
-		if (nameAndEmailValid(name, email)) {
-			student = studentService.updateStudent(id, name, email);
-		} else {
-			return ResponseEntity.badRequest().build();
-		}
+		if (!nameAndEmailValid(name, email)) return ResponseEntity.badRequest().build();
 
-		if (student.isPresent()) {
-			Student updatedStudent = student.get();
-			Map<String, UUID> response = new HashMap<String, UUID>();
-			response.put("id", updatedStudent.getId());
-			return ResponseEntity.ok(response);
-		} else {
-			return ResponseEntity.notFound().build();
-		}
+		student = studentService.updateStudent(id, name, email);
+		
+		if (student.isEmpty()) return ResponseEntity.notFound().build();
+
+		Student updatedStudent = student.get();
+		Map<String, UUID> response = new HashMap<String, UUID>();
+		response.put("id", updatedStudent.getId());
+		return ResponseEntity.ok(response);
 	}
 
 	@DeleteMapping("/{id}")
