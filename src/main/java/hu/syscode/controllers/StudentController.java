@@ -55,7 +55,10 @@ public class StudentController {
 	public ResponseEntity<StudentDto> getStudentById(@PathVariable UUID id) {
 		logger.debug("Running getStudentById");
 		Optional<Student> student = studentService.getStudentById(id);
-		return student.map(value -> processStudent(value)).orElseGet(() -> ResponseEntity.notFound().build());
+		
+		if (student.isEmpty()) return ResponseEntity.notFound().build();
+		
+		return processStudent(student.get());
 	}
 
 	private ResponseEntity<List<StudentDto>> processStudents(List<Student> students) {
@@ -79,7 +82,7 @@ public class StudentController {
 		String jsonAddrRes = getJsonAddressResponse();
 
 		Optional<Address> address = getAddressFromJson(jsonAddrRes);
-		if (address.isEmpty()) return ResponseEntity.notFound().build();
+		if (address.isEmpty()) return ResponseEntity.internalServerError().build();
 
 		StudentDto studentDto = StudentDtoMapper.INSTANCE.convert(student, address.get());
 		return ResponseEntity.ok(studentDto);
