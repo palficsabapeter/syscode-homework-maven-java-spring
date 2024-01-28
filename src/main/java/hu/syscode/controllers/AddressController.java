@@ -1,6 +1,5 @@
 package hu.syscode.controllers;
 
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,13 +15,13 @@ import hu.syscode.services.AddressService;
 @RequestMapping("/address")
 public class AddressController {
 	private static final Logger logger = LogManager.getLogger(AddressController.class);
-	
-    @Autowired
-    private AddressService addressService;
-    
+
+	@Autowired
+	private AddressService addressService;
+
 	@GetMapping
-    public ResponseEntity<Address> getAddress() {
+	public ResponseEntity<Address> getAddress() {
 		logger.debug("Running getAddress");
-        return ResponseEntity.ok(addressService.getAddress());
-    }
+		return ResponseEntity.ok(addressService.getAddress());
+	}
 }

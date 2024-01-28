@@ -6,4 +6,5 @@ import java.util.UUID;
 
 import hu.syscode.entities.Student;
 
-public interface StudentRepository extends JpaRepository<Student, UUID> {}
+public interface StudentRepository extends JpaRepository<Student, UUID> {
+}

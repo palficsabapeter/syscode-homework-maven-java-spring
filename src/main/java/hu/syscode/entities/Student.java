@@ -15,11 +15,11 @@ import java.util.UUID;
 @Getter
 @Setter
 public class Student {
-    @Id
-    @GeneratedValue(generator = "uuid2")
-    @GenericGenerator(name = "uuid2", strategy="uuid2")
-    private UUID id;
-    
-    private String name;
-    private String email;
+	@Id
+	@GeneratedValue(generator = "uuid2")
+	@GenericGenerator(name = "uuid2", strategy = "uuid2")
+	private UUID id;
+
+	private String name;
+	private String email;
 }
