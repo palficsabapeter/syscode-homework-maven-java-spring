@@ -1,7 +1,8 @@
 package hu.syscode.controllers;
 
-import java.util.List;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,12 +15,14 @@ import hu.syscode.services.AddressService;
 @RestController
 @RequestMapping("/address")
 public class AddressController {
+	private static final Logger logger = LogManager.getLogger(AddressController.class);
 	
     @Autowired
     private AddressService addressService;
     
 	@GetMapping
     public ResponseEntity<Address> getAddress() {
+		logger.debug("Running getAddress");
         return ResponseEntity.ok(addressService.getAddress());
     }
 }

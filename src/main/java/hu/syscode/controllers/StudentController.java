@@ -1,5 +1,7 @@
 package hu.syscode.controllers;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
@@ -26,6 +28,8 @@ import java.util.regex.Pattern;
 @RestController
 @RequestMapping("/students")
 public class StudentController {
+	private static final Logger logger = LogManager.getLogger(StudentController.class);
+	
 	private final WebClient webClient;
     
     @Value("${spring.security.user.name}")
@@ -44,6 +48,8 @@ public class StudentController {
 
     @GetMapping
     public ResponseEntity<List<StudentDto>> getAllStudents() {
+    	logger.debug("Running getAllStudents");
+    	
     	String jsonAddrRes = webClient.get()
                 .uri("/address")
                 .header("Authorization", StudentController.getBasicAuthenticationHeader(addressAuthUser, addressAuthPw))
@@ -75,6 +81,7 @@ public class StudentController {
 
     @GetMapping("/{id}")
     public ResponseEntity<StudentDto> getStudentById(@PathVariable UUID id) {
+    	logger.debug("Running getStudentById");
     	String jsonAddrRes = webClient.get()
                 .uri("/address")
                 .header("Authorization", StudentController.getBasicAuthenticationHeader(addressAuthUser, addressAuthPw))
@@ -101,6 +108,7 @@ public class StudentController {
 
     @PostMapping
     public ResponseEntity<Map<String, UUID>> createStudent(@RequestBody Map<String, String> studentData) {
+    	logger.debug("Running createStudent");
     	String name = studentData.get("name");
         String email = studentData.get("email");
         
@@ -116,6 +124,7 @@ public class StudentController {
 
     @PutMapping("/{id}")
     public ResponseEntity<Map<String, UUID>> updateStudent(@PathVariable UUID id, @RequestBody Map<String, String> studentData) {
+    	logger.debug("Running updateStudent");
         String name = studentData.get("name");
         String email = studentData.get("email");
         Optional<Student> student = Optional.empty();
@@ -138,6 +147,7 @@ public class StudentController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteStudent(@PathVariable UUID id) {
+    	logger.debug("Running deleteStudent");
         studentService.deleteStudent(id);
         return ResponseEntity.noContent().build();
     }
