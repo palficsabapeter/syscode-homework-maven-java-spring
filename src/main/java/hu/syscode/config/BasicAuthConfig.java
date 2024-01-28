@@ -9,7 +9,10 @@ import org.springframework.security.web.SecurityFilterChain;
 public class BasicAuthConfig {
 	@Bean
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-		return http.authorizeHttpRequests().requestMatchers("/address").authenticated().and().httpBasic().and()
-				.authorizeHttpRequests().requestMatchers("/**").permitAll().and().build();
+		return http.csrf().disable()
+				.authorizeHttpRequests().requestMatchers("/address").authenticated().and().httpBasic()
+				.and()
+				.authorizeHttpRequests().requestMatchers("/**").permitAll().and()
+				.build();
 	}
 }
